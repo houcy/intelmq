@@ -603,9 +603,9 @@ class TestMessageFactory(unittest.TestCase):
 
     def test_message_update(self):
         """ Test Message.update """
-        ev = message.Event()
+        event = self.new_event()
         with self.assertRaises(exceptions.InvalidValue):
-            ev.update({'source.asn': 'AS1'})
+            event.update({'source.asn': 'AS1'})
 
 
 if __name__ == '__main__':  # pragma: no cover  # pragma: no cover
