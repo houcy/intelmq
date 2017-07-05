@@ -1,10 +1,16 @@
 CHANGELOG
 ==========
 
-development
------------
+1.0.0.rc1 Release candidate
+---------------------------
 ### Core
 - Changing the value of an existing field to `None` deletes the field.
+- `Message.update` now behaves like `dict.update`. The old behavior is implemented in `Message.change`
+- Deprecated `http_ssl_proxy` has been dropped, use `https_proxy` instead
+- Deprecated `http_timeout` has been dropped, use `http_timeout_sec` instead
+- Deprecated parameters force and ignore of `Message.add` have been removed
+- Deprecated method `Message.contains` has been removed
+- Drop support for deprecated configuration files `startup.conf` and `system.conf`
 
 ### Development
 - We are now testing with and without optional libraries/lowest recommended versions and most current versions of required libraries
@@ -16,7 +22,10 @@ development
 - The branching/releasing mechanism has been documented
 
 ### Bots
+#### Collectors
 - HTTP collectors: If http_username and http_password are both given and empty or null, 'None:None' has been used to authenticate. It is now checked that the username evaulates to non-false/null before adding the authentication. (fixes #1017)
+- Dropped unmaintained and undocumented FTP(S) collectors `bots.collectors.ftp`. Also, the FTPS collector had a license conflict (#842).
+- `bots.collectors.http.collector_http_stream`: drop deprecated parameter `url` in favor of `http_url`
 
 #### Parsers
 - Removed bots.parsers.openbl as the source is offline since end of may (#1018, https://twitter.com/sshblorg/status/854669263671615489)
