@@ -114,6 +114,14 @@ class Message(dict):
     def __setitem__(self, key, value):
         self.add(key, value)
 
+    def __getitem__(self, key):
+        if key == 'extra':
+            # return extra as string for backwards compatibility
+            warnings.warn('Getting the extra field is deprecated and will be removed in version 2.0.')
+            return json.dumps(self.to_dict(hierarchical=True)['extra'])
+        else:
+            return super(Message, self).__getitem__(key)
+
     def is_valid(self, key: str, value: str, sanitize: bool=True) -> bool:
         """
         Checks if a value is valid for the key (after sanitation).
@@ -206,7 +214,16 @@ class Message(dict):
             else:
                 return False
 
-        super(Message, self).__setitem__(key, value)
+        if key == 'extra':
+            # for backwards compatibility allow setting the extra field as string
+            warnings.warn('Setting the extra field is deprecated and will be removed in version 2.0.')
+            for extrakey, extravalue in json.loads(value).items():
+                if hasattr(extravalue, '__len__'):
+                    if not len(extravalue):  # ignore empty values
+                        continue
+                super(Message, self).__setitem__('extra.%s' % extrakey, extravalue)
+        else:
+            super(Message, self).__setitem__(key, value)
         return True
 
     def update(self, other: dict):
@@ -252,16 +269,20 @@ class Message(dict):
         return message
 
     def __is_valid_key(self, key: str):
-        if key in self.harmonization_config or key == '__type':
+        if key in self.harmonization_config or key == '__type' or key.startswith('extra.'):
             return True
         return False
 
     def __is_valid_value(self, key: str, value: str):
         if key == '__type':
             return (True, )
-        config = self.__get_type_config(key)
+        config, subitem = self.__get_type_config(key)
         class_reference = getattr(intelmq.lib.harmonization, config['type'])
-        if not class_reference().is_valid(value):
+        if not subitem:
+            validation = class_reference().is_valid(value)
+        else:
+            validation = class_reference().is_valid_subitem(value)
+        if not validation:
             return (False, 'is_valid returned False.')
         if 'length' in config:
             length = len(str(value))
@@ -277,13 +298,23 @@ class Message(dict):
         return (True, )
 
     def __sanitize_value(self, key: str, value: str):
-        class_name = self.__get_type_config(key)['type']
-        class_reference = getattr(intelmq.lib.harmonization, class_name)
-        return class_reference().sanitize(value)
+        class_name, subitem = self.__get_type_config(key)
+        class_reference = getattr(intelmq.lib.harmonization, class_name['type'])
+        if not subitem:
+            return class_reference().sanitize(value)
+        else:
+            return class_reference().sanitize_subitem(value)
 
     def __get_type_config(self, key: str):
-        class_name = self.harmonization_config[key]
-        return class_name
+        try:
+            class_name = self.harmonization_config[key]
+        except KeyError:
+            # Could be done recursively in the future if needed
+            class_name = self.harmonization_config[key.split('.')[0]]
+            subitem = True
+        else:
+            subitem = False
+        return class_name, subitem
 
     def __hash__(self):
         return int(self.hash(), 16)
