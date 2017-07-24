@@ -102,7 +102,7 @@ https://software.opensuse.org/download.html?project=home%3Asebix%3Aintelmq&packa
 
 Currently, these operating systems are supported by the packages:
 * CentOS 7, install `epel-release` first
-* Debian 8
+* Debian 8, install `python3-typing` too
 * Fedora 25
 * openSUSE Leap 42.2
 * openSUSE Tumbleweed
