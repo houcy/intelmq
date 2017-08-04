@@ -1,10 +1,13 @@
 CHANGELOG
 ==========
 
-1.0.0.rc2 Release candidate
----------------------------
+1.0.0 Stable release
+--------------------
 ### Harmonization
 - leading dots in FQDNs are rejected and removed in sanitation (#1022, #1030)
+
+### Bots
+- shadowserver parser Accessible-SMB: smb_implant is converted to bool
 
 1.0.0.rc1 Release candidate
 ---------------------------
